@@ -1,0 +1,43 @@
+# ---- Carpetas de IDE ----
+.vscode/
+.idea/
+
+# ---- Archivos de Python ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+
+# ---- Entornos virtuales ----
+.venv/
+env/
+venv/
+
+
+# ---- Datos de entrada y salida ----
+inputs/
+outputs/
+
+# ---- Carpeta de dependencias externas ----
+mmpose/
+checkpoints/
+
+# ---- Logs ----
+*.log
+
+# ---- Archivos temporales ----
+*.tmp
+*.swp
+*.swo
+
+# ---- Archivos del sistema ----
+.DS_Store
+Thumbs.db
+
+# ---- Docker ----
+.dockerignore
+
+# ---- Dependencias ----
+# Mantenemos environment.yml porque define tu entorno de trabajo.
+# requirements.txt si lo generas, también se sube.
