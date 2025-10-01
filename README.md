@@ -1,276 +1,339 @@
-MMPose – Dockerized Runtime (CUDA 12.1, PyTorch 2.4)
+# MMPose – Dockerized Runtime
 
-Este repositorio empaqueta un entorno reproducible para correr estimación de pose con MMPose dentro de Docker, aprovechando GPU NVIDIA (CUDA 12.1).
-La imagen clona MMPose dentro del contenedor y lo instala, así que no necesitas instalarlo en tu host.
+![CUDA](https://img.shields.io/badge/CUDA-12.1-76B900?logo=nvidia)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.4-EE4C2C?logo=pytorch)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
 
-Probado en Windows 11 + Docker Desktop (WSL2) con GPU NVIDIA.
+Entorno reproducible y listo para usar que ejecuta **estimación de pose con MMPose** dentro de Docker, aprovechando GPU NVIDIA con CUDA 12.1.
 
-Contenidos
+> ✨ **Todo incluido**: MMPose se clona e instala automáticamente dentro del contenedor. No necesitas instalaciones locales.
 
-Requisitos
+**Probado en**: Windows 11 + Docker Desktop (WSL2) con GPU NVIDIA
 
-Estructura del proyecto
+---
 
-Construir la imagen Docker
+## 📋 Tabla de Contenidos
 
-Arrancar el contenedor y verificar
+- [Requisitos Previos](#-requisitos-previos)
+- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Guía Rápida de Inicio](#-guía-rápida-de-inicio)
+  - [1. Construir la Imagen](#1-construir-la-imagen)
+  - [2. Iniciar el Contenedor](#2-iniciar-el-contenedor)
+  - [3. Verificar Instalación](#3-verificar-instalación)
+- [Uso: Procesamiento de Videos](#-uso-procesamiento-de-videos)
+- [Uso: Tiempo Real (Cámara)](#-uso-tiempo-real-cámara)
+- [Solución de Problemas](#-solución-de-problemas)
+- [Preguntas Frecuentes](#-preguntas-frecuentes)
 
-Ejecutar con vídeos pregrabados
+---
 
-Ejecutar en tiempo real (opcional)
+## 🔧 Requisitos Previos
 
-Notas sobre Windows / terminales
+Antes de comenzar, asegúrate de tener:
 
-Solución de problemas
+- ✅ **Windows 11** con Docker Desktop configurado con backend WSL2
+- ✅ **GPU NVIDIA** con drivers actualizados (soporte CUDA)
+- ✅ **Acceso a GPU en Docker**: Ve a Docker Desktop → `Settings` → `Resources` → `GPU` y actívalo
+- ✅ **Git** para clonar este repositorio
 
-FAQ
+> ⚠️ **Nota importante**: No necesitas instalar conda, miniconda ni Python localmente. Todo se ejecuta dentro del contenedor.
 
-Requisitos
+---
 
-Windows 11 con Docker Desktop y backend WSL2.
+## 📁 Estructura del Proyecto
 
-GPU NVIDIA con drivers recientes (soporte CUDA).
-
-Docker con acceso a GPU (en Docker Desktop, Settings → Resources → GPU debe estar habilitado).
-
-Git para clonar este repositorio.
-
-⚠️ No necesitas conda/miniconda en el host. Todo corre dentro del contenedor.
-
-Estructura del proyecto
+```
 .
-├─ Dockerfile
-├─ README.md
-├─ config.py                 # tu configuración de modelo/visualización
-├─ main.py                   # script principal (batch)
-├─ run_video.py              # demo para vídeos pregrabados
-├─ run_realtime.py           # demo en tiempo real (cámara/rtsp)
-├─ video_utils.py
-├─ environment.yml           # (informativo) no se usa en Docker
-├─ checkpoints/              # coloca aquí los .pth de modelos
-├─ inputs/                   # tus vídeos de entrada .mp4 / .avi
-└─ outputs/                  # resultados procesados
+├── Dockerfile              # Configuración de la imagen Docker
+├── README.md              
+├── config.py               # Configuración de modelos y visualización
+├── main.py                 # Script principal de procesamiento por lotes
+├── run_video.py            # Demo para videos pregrabados
+├── run_realtime.py         # Demo para cámara en tiempo real
+├── video_utils.py          # Utilidades auxiliares
+├── environment.yml         # (Referencia) Dependencias conda
+├── checkpoints/            # 📦 Coloca aquí tus archivos .pth
+├── inputs/                 # 🎥 Tus videos de entrada (.mp4, .avi)
+└── outputs/                # 📤 Resultados procesados
+```
 
+> 💡 **Importante**: Los archivos `.pth` de checkpoints no se incluyen en el repositorio. Debes descargarlos manualmente y colocarlos en la carpeta `checkpoints/`.
 
-Importante: los checkpoints (.pth) no se suben a Git. Descárgalos y colócalos en checkpoints/ en tu máquina.
+---
 
-Construir la imagen Docker
+## 🚀 Guía Rápida de Inicio
 
-Abre PowerShell en la carpeta raíz del repo (donde está el Dockerfile) y ejecuta:
+### 1. Construir la Imagen
 
+Abre **PowerShell** en la carpeta raíz del repositorio y ejecuta:
+
+```powershell
 docker build -t mmpose:cuda12.1 .
+```
 
+**Notas importantes:**
+- ⏱️ La primera construcción puede tardar varios minutos y ocupar ~20 GB
+- 🔄 Las siguientes construcciones serán mucho más rápidas gracias al caché
+- 📦 El Dockerfile clona e instala MMPose automáticamente
 
-Notas:
+---
 
-La primera build descarga CUDA, PyTorch, MMPose, etc. Puede tardar y ocupar ~20 GB.
+### 2. Iniciar el Contenedor
 
-Siguientes builds serán más rápidas por caché.
+Según tu terminal, usa el comando apropiado:
 
-El Dockerfile clona MMPose dentro de la imagen y lo instala (editable o importable), por lo que no necesitas clonar MMPose en tu host.
-
-Arrancar el contenedor y verificar
-Montar tu proyecto dentro del contenedor
-
-Según la terminal que uses, el parámetro -v cambia:
-
-PowerShell (recomendado):
-
+**PowerShell** (Recomendado):
+```powershell
 docker run --gpus all --shm-size=8g -it -v ${PWD}:/workspace mmpose:cuda12.1
+```
 
-
-CMD clásico:
-
+**CMD**:
+```cmd
 docker run --gpus all --shm-size=8g -it -v %cd%:/workspace mmpose:cuda12.1
+```
 
-
-Git Bash / MINGW64:
-
+**Git Bash / MINGW64**:
+```bash
 docker run --gpus all --shm-size=8g -it -v "$(pwd)":/workspace mmpose:cuda12.1
+```
 
+Tu proyecto quedará montado en `/workspace` dentro del contenedor.
 
-Tras entrar, tu repo quedará montado en /workspace.
-MMPose está disponible en el contenedor. Si la imagen lo instaló en modo editable, podrás importar mmpose sin más. Si prefieres, puedes exportar PYTHONPATH=/mmpose.
+---
 
-Verificaciones rápidas (dentro del contenedor)
+### 3. Verificar Instalación
+
+Una vez dentro del contenedor, ejecuta estas verificaciones:
+
+**Verificar GPU y PyTorch:**
+```bash
 python3 -c "import torch; print(torch.__version__, torch.cuda.is_available())"
-# salida esperada: 2.4.x True
+```
+✅ Salida esperada: `2.4.x True`
 
+**Verificar MMPose:**
+```bash
 python3 -c "import mmpose; print('MMPose OK')"
-# salida esperada: MMPose OK
+```
+✅ Salida esperada: `MMPose OK`
 
-Ejecutar con vídeos pregrabados
+---
 
-Copia un video a inputs/, por ejemplo inputs/sample.mp4.
+## 🎥 Uso: Procesamiento de Videos
 
-Dentro del contenedor:
+### Paso 1: Preparar el Video
 
+Copia tu video a la carpeta `inputs/`:
+```
+inputs/sample.mp4
+```
+
+### Paso 2: Procesar
+
+Dentro del contenedor, ejecuta:
+
+```bash
 cd /workspace
 python3 run_video.py --input inputs/sample.mp4 --output outputs/sample_out.mp4
+```
 
+### Paso 3: Obtener Resultados
 
-El resultado se guardará en outputs/.
+El video procesado estará disponible en `outputs/sample_out.mp4`
 
-Si tu script lee config.py o necesita un checkpoint concreto, asegúrate de tener el .pth en checkpoints/ y que la ruta en tu script/config apunte ahí.
+> 💡 **Tip**: Asegúrate de que tu archivo `config.py` apunte correctamente al checkpoint en `checkpoints/`
 
-Ejecutar en tiempo real (opcional)
+---
 
-La captura directa de cámara Windows → contenedor Linux puede ser compleja. Dos caminos:
+## 📹 Uso: Tiempo Real (Cámara)
 
-A) (Recomendado) Simular webcam con un RTSP desde el host
+La captura directa de cámara Windows → contenedor Linux puede ser compleja. Te presentamos dos métodos:
 
-(Host / Windows) Instala FFmpeg (si no lo tienes).
-Confirmación:
+### Método A: RTSP (Recomendado)
 
+Este método usa un servidor RTSP para transmitir tu cámara al contenedor.
+
+#### **En el Host (Windows)**
+
+**1. Verificar FFmpeg:**
+```powershell
 ffmpeg -version
 ffplay -version
+```
 
-
-(Host / Windows) Lista tu cámara:
-
+**2. Listar cámaras disponibles:**
+```powershell
 ffmpeg -list_devices true -f dshow -i dummy
+```
+Anota el nombre de tu cámara, por ejemplo: `ROG EYE S`
 
+**3. Iniciar servidor RTSP:**
 
-Ubica el nombre, por ejemplo: ROG EYE S.
-
-(Host / Windows) Publica la cámara como RTSP con un servidor de streaming:
-
-Arranca MediaMTX (servidor RTSP) en un terminal:
-
+Abre una terminal y ejecuta:
+```powershell
 docker run --rm --name mediamtx -p 8554:8554 bluenviron/mediamtx:latest
+```
+⚠️ Deja esta terminal abierta
 
+**4. Transmitir cámara al servidor:**
 
-Deja esta ventana abierta.
-
-En otra ventana (Host), empuja tu cámara al servidor:
-
+En otra terminal, ejecuta:
+```powershell
 ffmpeg -f dshow -rtbufsize 256M -framerate 30 -video_size 1280x720 -i video="ROG EYE S" ^
   -vf "format=yuv420p" -c:v libx264 -preset ultrafast -tune zerolatency -pix_fmt yuv420p -g 30 ^
   -f rtsp -rtsp_transport tcp rtsp://127.0.0.1:8554/cam
+```
 
-
-Si ves que duplica o pierde frames, baja a -video_size 640x480 o pon -framerate 25.
-
-(Opcional) Validar vista desde el host:
-
+**5. (Opcional) Verificar transmisión:**
+```powershell
 ffplay rtsp://127.0.0.1:8554/cam
+```
 
+#### **En el Contenedor (Linux)**
 
-(Contenedor / Linux) Consume el RTSP:
-
+```bash
 cd /workspace
-# Si tu script espera leer desde cv2.VideoCapture, pásale la URL:
 python3 run_realtime.py --input rtsp://host.docker.internal:8554/cam
+```
 
+> 🔑 **Clave**: Usa `host.docker.internal` para que el contenedor acceda a servicios del host
 
-En Docker Desktop (Windows), usa host.docker.internal para que el contenedor alcance el servicio RTSP del host.
+---
 
-Si tu script no acepta --input, edita internamente la fuente a:
-cv2.VideoCapture("rtsp://host.docker.internal:8554/cam").
+### Método B: Usar Video como Simulación
 
-B) Alternativa simple: usar un archivo como “cámara”
+Para pruebas rápidas, usa un archivo de video:
 
-Mientras pruebas, puedes usar un video como si fuera cámara:
-
+```bash
 python3 run_realtime.py --input inputs/sample.mp4
+```
 
-Notas sobre Windows / terminales
+---
 
-No mezcles sintaxis de PowerShell con CMD.
+## 🔍 Solución de Problemas
 
-PowerShell usa ${PWD}
+### Error: `ModuleNotFoundError: No module named 'mmdet'`
 
-CMD usa %cd%
+Algunas versiones de MMPose requieren mmdet. Instálalo dentro del contenedor:
 
-Git Bash usa $(pwd)
-
-Si ves: "%cd%" includes invalid characters… es porque ejecutaste un comando de CMD dentro de PowerShell. Usa la variante correcta para tu terminal.
-
-Solución de problemas
-
-ModuleNotFoundError: No module named 'mmdet'
-Tu script/versión de MMPose puede requerir mmdet. Dentro del contenedor:
-
+```bash
 pip install mmdet
+```
 
+---
 
-(Puedes integrarlo en el Dockerfile si tu flujo lo necesita siempre.)
+### La cámara no se abre con `cv2.VideoCapture()`
 
-cv2.VideoCapture(...) no abre la cámara
+- ✅ Usa el método RTSP con `host.docker.internal`
+- ✅ Verifica que MediaMTX esté corriendo
+- ✅ Confirma que FFmpeg está transmitiendo correctamente
 
-Desde contenedor usa RTSP con host.docker.internal (ver sección tiempo real).
+---
 
-Si usas RTSP y ves Connection refused: revisa que MediaMTX está corriendo y que FFmpeg está publicando (cam).
+### Frames perdidos en FFmpeg
 
-Muchos frame dropped en FFmpeg (Windows)
+Si ves muchos `frame dropped`:
 
-Reduce resolución: -video_size 640x480
+- 📉 Reduce resolución: `-video_size 640x480`
+- 🐌 Baja fps: `-framerate 25` o `-framerate 15`
+- ❌ Cierra otras aplicaciones que usen la webcam
 
-Baja fps: -framerate 25 o -framerate 15
+---
 
-Asegúrate de cerrar apps que usen simultáneamente la webcam.
+### GPU no detectada (`False` en `torch.cuda.is_available()`)
 
-GPU no detectada (False en torch.cuda.is_available())
+1. Activa GPU en Docker Desktop: `Settings` → `Resources` → `GPU`
+2. Verifica que uses `--gpus all` al iniciar el contenedor
+3. Actualiza los drivers NVIDIA en Windows
 
-En Docker Desktop habilita GPU.
+---
 
-Lanza contenedor con --gpus all.
+### Problemas con rutas de checkpoints
 
-Actualiza drivers NVIDIA en Windows.
+- Coloca los archivos `.pth` en `checkpoints/` del host
+- Verifica que `config.py` apunte correctamente a estas rutas
+- Las rutas dentro del contenedor serán: `/workspace/checkpoints/`
 
-Rutas de checkpoints/config
+---
 
-Coloca .pth en checkpoints/ y asegúrate de que config.py o tus scripts apunten correctamente.
+## ❓ Preguntas Frecuentes
 
-FAQ
+<details>
+<summary><strong>¿Necesito instalar conda o miniconda?</strong></summary>
 
-¿Necesito conda/miniconda?
-No. Docker ya incluye Python y todas las dependencias. El environment.yml queda solo como referencia.
+No. Docker incluye Python y todas las dependencias necesarias. El archivo `environment.yml` es solo referencia.
+</details>
 
-¿Dónde pongo los checkpoints (.pth)?
-En checkpoints/ (del host). Se montan dentro del contenedor en /workspace/checkpoints.
+<details>
+<summary><strong>¿Dónde coloco los archivos de checkpoints (.pth)?</strong></summary>
 
-¿Puedo usar mi propia cámara sin RTSP?
-Directamente no, porque Windows → contenedor Linux complica el acceso al dispositivo. La vía robusta es RTSP (A) o probar con archivos (B).
+En la carpeta `checkpoints/` de tu host. Se montarán automáticamente en `/workspace/checkpoints` dentro del contenedor.
+</details>
 
-¿Puedo fijar una versión específica de MMPose?
-Sí. En el Dockerfile puedes clonar un tag/commit estable (por ejemplo usando --branch <tag>). Este repo ya trae una configuración que funcionó con:
+<details>
+<summary><strong>¿Puedo usar mi cámara sin RTSP?</strong></summary>
 
-Python 3.8
+El acceso directo Windows → contenedor Linux es complicado. RTSP es el método más robusto. Alternativamente, usa archivos de video para pruebas.
+</details>
 
-CUDA 12.1
+<details>
+<summary><strong>¿Puedo usar una versión específica de MMPose?</strong></summary>
 
-torch 2.4.1+cu121
+Sí. En el `Dockerfile`, modifica el comando `git clone` para usar un tag o commit específico:
 
-mmcv 2.1.0
+```dockerfile
+RUN git clone --branch <tag-version> https://github.com/open-mmlab/mmpose.git
+```
 
-mmengine 0.10.7
+**Versiones probadas:**
+- Python 3.8
+- CUDA 12.1
+- PyTorch 2.4.1+cu121
+- mmcv 2.1.0
+- mmengine 0.10.7
+- mmdet 3.3.0
+</details>
 
-mmdet 3.3.0 (si tu script lo requiere)
+---
 
-Comandos “de bolsillo”
+## 📝 Comandos de Referencia Rápida
 
-Build:
-
+**Construir imagen:**
+```bash
 docker build -t mmpose:cuda12.1 .
+```
 
-
-Run (PowerShell):
-
+**Iniciar contenedor (PowerShell):**
+```bash
 docker run --gpus all --shm-size=8g -it -v ${PWD}:/workspace mmpose:cuda12.1
+```
 
-
-Verificar GPU dentro del contenedor:
-
+**Verificar GPU:**
+```bash
 python3 -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+```
 
-
-Demo con video:
-
+**Procesar video:**
+```bash
 cd /workspace
 python3 run_video.py --input inputs/sample.mp4 --output outputs/sample_out.mp4
+```
 
-
-Demo tiempo real (RTSP desde host):
-
+**Tiempo real (RTSP):**
+```bash
 python3 run_realtime.py --input rtsp://host.docker.internal:8554/cam
+```
+
+---
+
+## 🤝 Contribuciones
+
+Las contribuciones son bienvenidas. Por favor, abre un issue o pull request para sugerencias y mejoras.
+
+---
+
+<div align="center">
+
+⭐ Si este proyecto te fue útil, considera darle una estrella
+
+</div>
