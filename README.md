@@ -14,7 +14,13 @@ Entorno reproducible y listo para usar que ejecuta **estimación de pose con MMP
 
 ## 📋 Tabla de Contenidos
 
-- [Requisitos Previos](#-requisitos-previos)
+- [Preparación del Entorno (GPU + Docker)](#-preparación-del-entorno-gpu--docker)
+  - [1. Verificar tu GPU](#1️⃣-verificar-tu-gpu)
+  - [2. Instalar Drivers NVIDIA y CUDA](#2️⃣-instalar-drivers-nvidia-y-cuda)
+  - [3. Instalar Docker con Soporte GPU](#3️⃣-instalar-docker-con-soporte-gpu)
+  - [4. Verificar que Docker Detecta la GPU](#4️⃣-verificar-que-docker-detecta-la-gpu)
+  - [5. Flujo Recomendado](#5️⃣-flujo-recomendado-antes-de-correr-el-proyecto)
+- [Requisitos del Proyecto](#-requisitos-del-proyecto)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
 - [Guía Rápida de Inicio](#-guía-rápida-de-inicio)
   - [1. Construir la Imagen](#1-construir-la-imagen)
@@ -27,9 +33,112 @@ Entorno reproducible y listo para usar que ejecuta **estimación de pose con MMP
 
 ---
 
-## 🔧 Requisitos Previos
+## 🚀 Preparación del Entorno (GPU + Docker)
 
-Antes de comenzar, asegúrate de tener:
+Este proyecto requiere **aceleración por GPU** para un rendimiento óptimo en la estimación de poses.  
+A continuación se detallan los pasos previos necesarios antes de clonar y ejecutar el repositorio.
+
+---
+
+### 1️⃣ Verificar tu GPU
+
+Abre **PowerShell** o **CMD** en Windows y ejecuta:
+
+```bash
+nvidia-smi
+```
+
+Si tu tarjeta gráfica es detectada, verás algo similar a esto:
+
+```
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 535.146   Driver Version: 535.146   CUDA Version: 12.2          |
+| GPU Name        Persistence-M| Bus-Id ... Memory-Usage ...                 |
++-----------------------------------------------------------------------------+
+```
+
+✅ Esto confirma que tienes drivers NVIDIA funcionando.
+
+---
+
+### 2️⃣ Instalar Drivers NVIDIA y CUDA
+
+1. **Descarga los drivers oficiales NVIDIA**:  
+   👉 https://www.nvidia.com/Download/index.aspx
+
+2. **Descarga e instala CUDA Toolkit** (elige la versión que coincida con tu GPU y drivers):  
+   👉 https://developer.nvidia.com/cuda-downloads
+
+3. Durante la instalación marca **"Include Driver"** si no lo tienes actualizado.
+
+4. **Verifica CUDA** con:
+   ```bash
+   nvcc --version
+   ```
+
+---
+
+### 3️⃣ Instalar Docker con Soporte GPU
+
+1. **Descarga e instala Docker Desktop**:  
+   👉 https://www.docker.com/products/docker-desktop/
+
+2. Activa la opción **"Use WSL 2 based engine"** en configuración de Docker.
+
+3. **Instala el NVIDIA Container Toolkit** (permite que Docker acceda a la GPU):
+
+   Abre **PowerShell (Admin)** y ejecuta:
+   ```powershell
+   wsl --update
+   wsl --install
+   ```
+
+   Luego, dentro de WSL, instala el toolkit:
+   ```bash
+   distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+   curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo apt-key add -
+   curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+   sudo apt-get update
+   sudo apt-get install -y nvidia-container-toolkit
+   sudo systemctl restart docker
+   ```
+
+---
+
+### 4️⃣ Verificar que Docker Detecta la GPU
+
+Ejecuta en PowerShell o CMD:
+
+```bash
+docker run --rm --gpus all nvidia/cuda:12.2.0-base-ubuntu22.04 nvidia-smi
+```
+
+👉 Si todo está bien, deberías ver la misma salida que con `nvidia-smi`.
+
+---
+
+### 5️⃣ Flujo Recomendado Antes de Correr el Proyecto
+
+Antes de continuar con la instalación del proyecto, asegúrate de:
+
+- ✅ Verificar tu **GPU** con `nvidia-smi`
+- ✅ Instalar/actualizar **drivers NVIDIA y CUDA**
+- ✅ Instalar **Docker Desktop** con **WSL2**
+- ✅ Configurar el **NVIDIA Container Toolkit**
+- ✅ Probar `docker run --rm --gpus all ...` para confirmar que Docker ve la GPU
+
+⚡ **Una vez completados estos pasos, ya puedes continuar con:**
+
+1. Clonar **MMPose**
+2. Clonar **este repositorio dentro de la carpeta de MMPose**
+3. Construir y levantar el contenedor Docker
+4. Ejecutar scripts (`run_video.py`, `run_realtime.py`, etc.)
+
+---
+
+## 🔧 Requisitos del Proyecto
+
+Una vez completada la preparación del entorno, verifica que tengas:
 
 - ✅ **Windows 11** con Docker Desktop configurado con backend WSL2
 - ✅ **GPU NVIDIA** con drivers actualizados (soporte CUDA)
@@ -245,6 +354,7 @@ Si ves muchos `frame dropped`:
 1. Activa GPU en Docker Desktop: `Settings` → `Resources` → `GPU`
 2. Verifica que uses `--gpus all` al iniciar el contenedor
 3. Actualiza los drivers NVIDIA en Windows
+4. Revisa la sección [Preparación del Entorno](#-preparación-del-entorno-gpu--docker) para validar la instalación completa
 
 ---
 
