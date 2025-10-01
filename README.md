@@ -129,9 +129,9 @@ Antes de continuar con la instalación del proyecto, asegúrate de:
 
 ⚡ **Una vez completados estos pasos, ya puedes continuar con:**
 
-1. Clonar **MMPose**
-2. Clonar **este repositorio dentro de la carpeta de MMPose**
-3. Construir y levantar el contenedor Docker
+1. Clonar **este repositorio** 
+2. Clonar **MMPose**
+3. Construir y levantar el contenedor Docker 
 4. Ejecutar scripts (`run_video.py`, `run_realtime.py`, etc.)
 
 ---
